@@ -50,6 +50,12 @@ body {
   z-index: 10;
 }
 
+.app-logo-img {
+  height: 24px;
+  width: auto;
+  flex-shrink: 0;
+}
+
 .app-logo {
   font-size: 14px;
   font-weight: 600;
