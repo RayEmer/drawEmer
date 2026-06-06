@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0A0A0F" />
+    <title>DrawEmer</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+
+    <!-- HEADER -->
+    <header id="app-header">
+      <span class="app-logo">✏ DrawEmer</span>
+
+      <div class="header-actions">
+        <button id="btn-undo" class="btn-header btn-icon" title="Deshacer (Ctrl+Z)" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7v6h6"/><path d="M3 13C4.7 7.6 9.9 4 16 4a9 9 0 0 1 0 18H9"/>
+          </svg>
+        </button>
+        <button id="btn-redo" class="btn-header btn-icon" title="Rehacer (Ctrl+Y)" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 7v6h-6"/><path d="M21 13C19.3 7.6 14.1 4 8 4a9 9 0 0 0 0 18h7"/>
+          </svg>
+        </button>
+
+        <div class="header-sep"></div>
+
+        <button id="btn-new" class="btn-header" title="Nuevo lienzo (Ctrl+N)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+          <span class="btn-label">Nuevo</span>
+        </button>
+        <button id="btn-clear" class="btn-header" title="Limpiar capa activa">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+          <span class="btn-label">Limpiar</span>
+        </button>
+        <button id="btn-export" class="btn-header btn-accent" title="Exportar PNG">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span class="btn-label">PNG</span>
+        </button>
+
+        <div class="header-sep"></div>
+
+        <!-- Toggle panel de capas (visible en móvil) -->
+        <button id="btn-toggle-layers" class="btn-header btn-icon" title="Capas">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>
+        </button>
+      </div>
+
+      <div id="canvas-info" class="canvas-info">Sin lienzo</div>
+    </header>
+
+    <!-- MAIN -->
+    <div id="main-layout">
+
+      <!-- TOOLBAR -->
+      <aside id="toolbar">
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="pencil" title="Lápiz (P)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="brush" title="Pincel (B)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.37 2.63L14 7l-1.59-1.59a2 2 0 0 0-2.82 0L8 7l9 9 1.59-1.59a2 2 0 0 0 0-2.82L17 10l4.37-4.37a2.12 2.12 0 1 0-3-3z"/><path d="M9 8c-2 3-4 3.5-7 4l8 8c1-.5 3.5-2 4-7"/></svg>
+          </button>
+          <button class="tool-btn" data-tool="eraser" title="Goma (E)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l10-10 7 7-3.5 3.5"/><path d="M6 11l7 7"/></svg>
+          </button>
+        </div>
+
+        <div class="tool-separator"></div>
+
+        <div class="tool-option-group">
+          <label class="tool-label">Tam</label>
+          <input id="size-slider" type="range" min="1" max="100" value="10" class="tool-slider" />
+          <input id="size-value" type="number" min="1" max="100" value="10" class="tool-number" />
+        </div>
+
+        <div class="tool-option-group">
+          <label class="tool-label">Opac</label>
+          <input id="opacity-slider" type="range" min="1" max="100" value="100" class="tool-slider" />
+          <input id="opacity-value" type="number" min="1" max="100" value="100" class="tool-number" />
+        </div>
+
+        <div class="tool-separator"></div>
+
+        <div class="tool-option-group tool-color-group">
+          <label class="tool-label">Color</label>
+          <div id="toolbar-color-swatch" class="toolbar-swatch"></div>
+        </div>
+      </aside>
+
+      <!-- CANVAS AREA -->
+      <main id="canvas-area">
+        <div id="canvas-scroll">
+          <div id="canvas-wrapper">
+            <canvas id="main-canvas"></canvas>
+          </div>
+        </div>
+        <div id="canvas-placeholder">
+          <div class="placeholder-content">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+            <p>Crea un nuevo lienzo para empezar</p>
+            <button id="btn-new-2" class="btn-primary">+ Nuevo lienzo</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- PANEL DE CAPAS (derecha en desktop, overlay en móvil) -->
+      <aside id="layer-panel">
+        <div class="layer-panel-header">
+          <span class="layer-panel-title">CAPAS</span>
+          <button id="btn-add-layer" class="lp-btn" title="Nueva capa">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <button id="btn-add-group" class="lp-btn" title="Nuevo grupo">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+
+        <div id="layer-list" class="layer-list"></div>
+
+        <div class="layer-panel-footer">
+          <div class="lp-row">
+            <label class="lp-label">Modo</label>
+            <select id="layer-blend-mode" class="lp-select"></select>
+          </div>
+          <div class="lp-row">
+            <label class="lp-label">Opac</label>
+            <input id="layer-opacity-slider" type="range" min="0" max="100" value="100" class="lp-range" />
+            <span id="layer-opacity-val" class="lp-val">100%</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- BOTTOM: COLOR PICKER -->
+    <div id="bottom-panel">
+      <div id="color-picker-section">
+
+        <canvas id="hsv-canvas"></canvas>
+
+        <div id="color-picker-controls">
+          <div class="picker-row">
+            <label class="picker-label">A</label>
+            <div id="alpha-track" class="alpha-track">
+              <div id="alpha-thumb" class="alpha-thumb"></div>
+            </div>
+            <span id="alpha-display" class="picker-val">100</span>
+          </div>
+          <div class="picker-row">
+            <label class="picker-label">HEX</label>
+            <span class="hex-hash">#</span>
+            <input id="hex-input" type="text" maxlength="6" value="000000" class="hex-input" spellcheck="false" />
+          </div>
+          <div class="picker-row">
+            <label class="picker-label">R</label>
+            <input id="r-input" type="number" min="0" max="255" value="0" class="rgb-input" />
+            <label class="picker-label">G</label>
+            <input id="g-input" type="number" min="0" max="255" value="0" class="rgb-input" />
+            <label class="picker-label">B</label>
+            <input id="b-input" type="number" min="0" max="255" value="0" class="rgb-input" />
+          </div>
+          <div class="picker-row">
+            <div id="color-preview-new" class="color-preview-swatch"></div>
+            <div id="color-preview-old" class="color-preview-swatch color-preview-old"></div>
+          </div>
+        </div>
+
+        <div id="color-history"></div>
+      </div>
+    </div>
+
+    <!-- CONTEXT MENU (capas) -->
+    <div id="layer-context-menu" class="context-menu hidden">
+      <button id="ctx-duplicate">Duplicar</button>
+      <button id="ctx-copy">Copiar</button>
+      <button id="ctx-paste">Pegar arriba</button>
+      <div class="ctx-sep"></div>
+      <button id="ctx-move-up">Subir ↑</button>
+      <button id="ctx-move-down">Bajar ↓</button>
+      <div class="ctx-sep"></div>
+      <button id="ctx-merge-down">Fusionar hacia abajo</button>
+      <button id="ctx-flatten">Aplanar imagen</button>
+      <div class="ctx-sep"></div>
+      <button id="ctx-effects">Efectos de capa…</button>
+      <div class="ctx-sep"></div>
+      <button id="ctx-delete" class="ctx-danger">Eliminar</button>
+    </div>
+
+    <!-- MODAL: NUEVO LIENZO -->
+    <div id="new-canvas-overlay" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h2 class="modal-title">Nuevo lienzo</h2>
+
+        <div class="form-group">
+          <label class="form-label">Presets</label>
+          <div class="preset-grid">
+            <button class="preset-btn" data-w="64"   data-h="64">Icono<br>64×64</button>
+            <button class="preset-btn" data-w="256"  data-h="256">Avatar<br>256×256</button>
+            <button class="preset-btn" data-w="1280" data-h="720">HD<br>720p</button>
+            <button class="preset-btn" data-w="1920" data-h="1080">Full HD<br>1080p</button>
+            <button class="preset-btn" data-w="2480" data-h="3508">A4<br>300dpi</button>
+            <button class="preset-btn" data-w="3840" data-h="2160">4K<br>2160p</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="canvas-width">Ancho (px)</label>
+            <input id="canvas-width" type="number" min="1" max="16384" value="800" class="form-input" inputmode="numeric" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="canvas-height">Alto (px)</label>
+            <input id="canvas-height" type="number" min="1" max="16384" value="600" class="form-input" inputmode="numeric" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Fondo</label>
+          <div class="radio-group">
+            <label class="radio-opt">
+              <input id="bg-transparent" type="radio" name="bg" value="transparent" checked />
+              Transparente
+            </label>
+            <label class="radio-opt">
+              <input id="bg-white" type="radio" name="bg" value="white" />
+              Blanco
+            </label>
+          </div>
+        </div>
+
+        <p id="canvas-size-warn" class="size-warn hidden">⚠ Tamaño grande: puede ser lento en dispositivos móviles.</p>
+
+        <div class="modal-actions">
+          <button id="modal-cancel" class="btn-secondary">Cancelar</button>
+          <button id="modal-create" class="btn-primary">Crear lienzo</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: EFECTOS DE CAPA (flotante) -->
+    <div id="layer-effects-panel" class="fx-panel hidden">
+      <div class="fx-panel-header" id="fx-drag-handle">
+        <span class="fx-panel-title">Efectos: <span id="effects-layer-name"></span></span>
+        <button id="effects-close" class="fx-close-btn" title="Cerrar">×</button>
+      </div>
+      <div class="fx-panel-body">
+
+        <!-- Sombra paralela -->
+        <div class="effect-section">
+          <div class="effect-header">
+            <input id="ds-enabled" type="checkbox" />
+            <label for="ds-enabled" class="effect-title">Sombra paralela</label>
+          </div>
+          <div class="effect-body">
+            <div class="ef-row"><label>Color</label><input id="ds-color" type="color" value="#000000" /></div>
+            <div class="ef-row"><label>Opacidad</label><input id="ds-opacity" type="range" min="0" max="100" value="75" /><span id="ds-opacity-val" class="ef-val">75</span></div>
+            <div class="ef-row"><label>Desenfoque</label><input id="ds-blur" type="range" min="0" max="50" value="10" /><span id="ds-blur-val" class="ef-val">10</span></div>
+            <div class="ef-row"><label>Desplaz. X</label><input id="ds-offsetx" type="range" min="-50" max="50" value="5" /><span id="ds-offsetx-val" class="ef-val">5</span></div>
+            <div class="ef-row"><label>Desplaz. Y</label><input id="ds-offsety" type="range" min="-50" max="50" value="5" /><span id="ds-offsety-val" class="ef-val">5</span></div>
+          </div>
+        </div>
+
+        <!-- Resplandor exterior -->
+        <div class="effect-section">
+          <div class="effect-header">
+            <input id="og-enabled" type="checkbox" />
+            <label for="og-enabled" class="effect-title">Resplandor exterior</label>
+          </div>
+          <div class="effect-body">
+            <div class="ef-row"><label>Color</label><input id="og-color" type="color" value="#ffee00" /></div>
+            <div class="ef-row"><label>Opacidad</label><input id="og-opacity" type="range" min="0" max="100" value="75" /><span id="og-opacity-val" class="ef-val">75</span></div>
+            <div class="ef-row"><label>Tamaño</label><input id="og-blur" type="range" min="0" max="80" value="15" /><span id="og-blur-val" class="ef-val">15</span></div>
+          </div>
+        </div>
+
+        <!-- Resplandor interior -->
+        <div class="effect-section">
+          <div class="effect-header">
+            <input id="ig-enabled" type="checkbox" />
+            <label for="ig-enabled" class="effect-title">Resplandor interior</label>
+          </div>
+          <div class="effect-body">
+            <div class="ef-row"><label>Color</label><input id="ig-color" type="color" value="#ffffff" /></div>
+            <div class="ef-row"><label>Opacidad</label><input id="ig-opacity" type="range" min="0" max="100" value="75" /><span id="ig-opacity-val" class="ef-val">75</span></div>
+            <div class="ef-row"><label>Tamaño</label><input id="ig-blur" type="range" min="0" max="80" value="10" /><span id="ig-blur-val" class="ef-val">10</span></div>
+          </div>
+        </div>
+
+        <!-- Superposición de degradado -->
+        <div class="effect-section">
+          <div class="effect-header">
+            <input id="go-enabled" type="checkbox" />
+            <label for="go-enabled" class="effect-title">Superposición de degradado</label>
+          </div>
+          <div class="effect-body">
+            <div class="ef-row"><label>Modo</label><select id="go-blend" class="ef-select"></select></div>
+            <div class="ef-row"><label>Opacidad</label><input id="go-opacity" type="range" min="0" max="100" value="100" /><span id="go-opacity-val" class="ef-val">100</span></div>
+            <div class="ef-row"><label>Ángulo</label><input id="go-angle" type="range" min="0" max="360" value="0" /><span id="go-angle-val" class="ef-val">0</span></div>
+            <div class="ef-row"><label>Puntos</label></div>
+            <div id="go-stops" class="go-stops"></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="fx-panel-footer">
+        <button id="effects-cancel" class="btn-secondary">Cancelar</button>
+        <button id="effects-apply" class="btn-primary">Cerrar</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
