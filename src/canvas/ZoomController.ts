@@ -13,6 +13,15 @@ export class ZoomController {
   private pinchStartDist = 1;
   private pinchStartZoom = 1;
 
+  // If we haven't heard from the pointer bookkeeping in a while but it still has
+  // entries, a previous gesture's pointerup/pointercancel was probably missed (the
+  // OS stealing a touch mid-gesture, app switch, etc.) and `pointers` is stuck with
+  // a stale entry - forever making pointers.size look like 2 fingers are down and
+  // blocking single-finger drawing. Self-heal instead of trusting that event to
+  // always arrive - same fix as the Android app's stuck pinch-gesture flag.
+  private lastEventAt = 0;
+  private readonly STALE_MS = 700;
+
   onZoomChange?: (zoom: number) => void;
 
   constructor(
@@ -38,9 +47,28 @@ export class ZoomController {
 
     // Rueda del ratón (desktop)
     this.scroll.addEventListener('wheel', e => this.onWheel(e), { passive: false });
+
+    // Belt-and-suspenders reset for the same "stuck gesture" failure mode: app
+    // switch, notification pull-down, etc. reliably fire these even when a
+    // pointercancel for the individual touch does not.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.forceReset();
+    });
+    window.addEventListener('blur', () => this.forceReset());
+  }
+
+  private forceReset(): void {
+    this.pointers.clear();
+    this.isPinching = false;
   }
 
   private onDown(e: PointerEvent): void {
+    const now = performance.now();
+    if (this.pointers.size > 0 && now - this.lastEventAt > this.STALE_MS) {
+      this.forceReset();
+    }
+    this.lastEventAt = now;
+
     this.pointers.set(e.pointerId, e);
 
     if (this.pointers.size === 2 && !this.isPinching) {
@@ -55,6 +83,7 @@ export class ZoomController {
 
   private onMove(e: PointerEvent): void {
     if (!this.pointers.has(e.pointerId)) return;
+    this.lastEventAt = performance.now();
     this.pointers.set(e.pointerId, e);
 
     if (this.isPinching && this.pointers.size >= 2) {
@@ -67,6 +96,7 @@ export class ZoomController {
   }
 
   private onUp(e: PointerEvent): void {
+    this.lastEventAt = performance.now();
     if (this.isPinching) e.stopPropagation();
     this.pointers.delete(e.pointerId);
 
@@ -111,6 +141,10 @@ export class ZoomController {
   private applySize(): void {
     this.canvas.style.width  = this.canvas.width  * this.zoom + 'px';
     this.canvas.style.height = this.canvas.height * this.zoom + 'px';
+    // Keep the transparency checkerboard scaled to the current zoom, so its
+    // squares track the image instead of staying a fixed screen size.
+    const wrapper = this.canvas.parentElement as HTMLElement | null;
+    wrapper?.style.setProperty('--checker-cell', `${16 * this.zoom}px`);
   }
 
   // Ajusta el zoom al crear un nuevo lienzo para que quepa en el viewport

@@ -34,6 +34,13 @@ export class CanvasEngine {
     this.tools = [new PencilTool(), new BrushTool(), new EraserTool()];
     this.activeTool = this.tools[0];
     this.bindEvents();
+
+    // If the tab is hidden/backgrounded mid-stroke, the pointerup/pointercancel
+    // that would normally end it can be missed - cancel proactively instead of
+    // leaving _isDrawing stuck true.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.cancelStroke();
+    });
   }
 
   get hasCanvas(): boolean { return this.layerManager.width > 0; }

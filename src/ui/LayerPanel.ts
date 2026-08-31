@@ -303,9 +303,17 @@ export class LayerPanel {
       if (b) (b as HTMLElement).style.display = isLayer ? '' : 'none';
     });
     const cm = this.contextMenu;
-    cm.style.left = `${Math.min(x, window.innerWidth  - cm.offsetWidth  - 8)}px`;
-    cm.style.top  = `${Math.min(y, window.innerHeight - cm.offsetHeight - 8)}px`;
+    // Make it visible first - while `.hidden` (display:none) is still applied,
+    // offsetWidth/offsetHeight both read 0, which silently defeated the edge
+    // clamping below for anyone opening the menu near the right/bottom edge.
     cm.classList.remove('hidden');
+    const menuW = cm.offsetWidth;
+    const menuH = cm.offsetHeight;
+    // Open toward the opposite side when the default position would overflow.
+    const left = x + menuW > window.innerWidth  - 8 ? x - menuW : x;
+    const top  = y + menuH > window.innerHeight - 8 ? y - menuH : y;
+    cm.style.left = `${Math.max(8, left)}px`;
+    cm.style.top  = `${Math.max(8, top)}px`;
   }
 
   private hideCtx(): void { this.contextMenu.classList.add('hidden'); this.ctxTarget = null; }

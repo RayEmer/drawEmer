@@ -268,16 +268,23 @@ body {
 }
 .placeholder-content p { font-size: 14px; }
 
-/* Checkered = transparencia */
+/* Checkered = transparencia. --checker-cell se actualiza en JS (ZoomController)
+   para que los cuadros escalen junto con el zoom del lienzo, en vez de quedar
+   fijos en pantalla. */
 #canvas-wrapper {
+  --checker-cell: 16px;
   background-color: #ffffff;
   background-image:
     linear-gradient(45deg, #c0c0c0 25%, transparent 25%),
     linear-gradient(-45deg, #c0c0c0 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #c0c0c0 75%),
     linear-gradient(-45deg, transparent 75%, #c0c0c0 75%);
-  background-size: 16px 16px;
-  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-size: var(--checker-cell) var(--checker-cell);
+  background-position:
+    0 0,
+    0 calc(var(--checker-cell) / 2),
+    calc(var(--checker-cell) / 2) calc(var(--checker-cell) / -2),
+    calc(var(--checker-cell) / -2) 0;
   box-shadow: 0 4px 32px rgba(0,0,0,0.6);
   line-height: 0;
   flex-shrink: 0;
